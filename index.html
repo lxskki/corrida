@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Solitaire 2D</title>
+
+    <!-- Meta tags for SEO & Social -->
+    <meta name="description"
+        content="Antigravity Solitaire 2D - Um jogo de cartas clássico klondike com lógica Python e visuais premium.">
+    <meta name="keywords" content="solitaire, paciência, python, pyscript, web game, card game">
+    <meta property="og:title" content="Antigravity Solitaire 2D">
+    <meta property="og:description"
+        content="Jogue o clássico Solitaire reinventado com visuais impressionantes e lógica Python.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+    <style>
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+            /* Prevents scrolling while dragging */
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--color-table-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading" class="loading-overlay">
+        <div class="loader"></div>
+        <p style="margin-top: 1rem; color: var(--text-secondary);">Carregando Lógica Python...</p>
+    </div>
+
+    <header>
+        <div class="logo">
+            <h1>Antigravity Solitaire 2D</h1>
+        </div>
+        <div class="stats">
+            <div>Tempo: <span id="timer" class="stat-value">00:00</span></div>
+            <div>Pontuação: <span id="score" class="stat-value">0</span></div>
+            <div>Movimentos: <span id="moves" class="stat-value">0</span></div>
+        </div>
+        <div class="actions">
+            <button class="btn" id="new-game-btn">Novo Jogo</button>
+        </div>
+    </header>
+
+    <main class="game-container">
+        <canvas id="game-canvas"></canvas>
+    </main>
+
+    <div class="controls">
+        <button class="btn" id="undo-btn">Desfazer</button>
+        <button class="btn" id="hint-btn">Dica</button>
+        <div class="stat-value" style="font-size: 0.8rem; opacity: 0.5;">Versão 1.0</div>
+    </div>
+
+    <script type="py" src="main.py" config="pyscript.toml"></script>
+
+    <script>
+        // Helpful JS bridge for canvas sizing
+        const canvas = document.getElementById('game-canvas');
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth * window.devicePixelRatio;
+            canvas.height = canvas.clientHeight * window.devicePixelRatio;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Hide loader when PyScript is ready
+        window.addEventListener('py:ready', () => {
+            document.getElementById('loading').style.opacity = '0';
+            setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+        });
+    </script>
+</body>
+
+</html>

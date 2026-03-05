@@ -1,0 +1,7 @@
+[pyscript]
+name = "Antigravity Solitaire 2D"
+description = "A premium 2D Solitaire game with Python logic."
+version = "1.0.0"
+
+[[fetch]]
+files = ["main.py", "card_logic.py"]
