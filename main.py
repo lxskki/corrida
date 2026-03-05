@@ -20,10 +20,16 @@ CORNER_RADIUS = 8 * DPR
 COLOR_WHITE = "#ffffff"
 COLOR_RED = "#e11d48"
 COLOR_BLACK = "#0f172a"
+COLOR_GOLD = "#fbbf24"
 COLOR_GLASS = "rgba(255, 255, 255, 0.1)"
 
 # Game State
 state = GameState()
+state_history = [] 
+
+active_hint = None
+global_timer = { 'hint': 0 } # Using dict to ensure mutability in closures/loops
+
 selected_cards = []  # Cards currently being dragged
 drag_source = None
 mouse_start_x = 0
@@ -98,10 +104,54 @@ def draw_card(ctx, card, x, y, is_dragging=False):
         # Center Icon
         draw_suit_icon(ctx, card.suit, x + CARD_WIDTH/2, y + CARD_HEIGHT/2, 48 * DPR)
 
+def draw_hint_highlight(hint):
+    if not hint: return
+    
+    ctx.strokeStyle = COLOR_GOLD
+    ctx.lineWidth = 4 * DPR
+    ctx.setLineDash([10 * DPR, 5 * DPR])
+    
+    # Highlight Source
+    source_x, source_y = -100, -100
+    if hint['type'] == 'waste_to_foundations' or hint['type'] == 'waste_to_tableau':
+        source_x = 40*DPR + CARD_WIDTH + CARD_GAP
+        source_y = 30*DPR
+    elif hint['type'] == 'tableau_to_foundations' or hint['type'] == 'tableau_to_tableau':
+        source_idx = hint['source_idx']
+        source_x = 40*DPR + source_idx * (CARD_WIDTH + CARD_GAP)
+        if hint['type'] == 'tableau_to_tableau':
+            source_y = TABLEAU_OFFSET_Y + hint['card_idx'] * TABLEAU_CARD_SPACING
+        else:
+            source_y = TABLEAU_OFFSET_Y + (len(state.tableau[source_idx]) - 1) * TABLEAU_CARD_SPACING
+            
+    if source_x > 0:
+        ctx.strokeRect(source_x - 4*DPR, source_y - 4*DPR, CARD_WIDTH + 8*DPR, CARD_HEIGHT + 8*DPR)
+        
+    # Highlight Target
+    target_x, target_y = -100, -100
+    if 'foundations' in hint['type']:
+        target_idx = hint['target_idx']
+        target_x = canvas.width - (4 - target_idx) * (CARD_WIDTH + CARD_GAP)
+        target_y = 30*DPR
+    elif 'tableau' in hint['type']:
+        target_idx = hint['target_idx']
+        target_x = 40*DPR + target_idx * (CARD_WIDTH + CARD_GAP)
+        target_y = TABLEAU_OFFSET_Y + len(state.tableau[target_idx]) * TABLEAU_CARD_SPACING if state.tableau[target_idx] else TABLEAU_OFFSET_Y
+
+    if target_x > 0:
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.5)"
+        ctx.strokeRect(target_x - 4*DPR, target_y - 4*DPR, CARD_WIDTH + 8*DPR, CARD_HEIGHT + 8*DPR)
+    
+    ctx.setLineDash([])
+
 def render(elapsed_time):
-    # Clear canvas with the same background as style.css isn't possible (it's transparency over body)
-    # But we can clear it fully
+    # Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    
+    # Draw Hint Highlight
+    if active_hint and global_timer['hint'] > 0:
+        draw_hint_highlight(active_hint)
+        global_timer['hint'] -= 1
     
     # Draw Stock Pile Area
     draw_rounded_rect(ctx, 40*DPR, 30*DPR, CARD_WIDTH, CARD_HEIGHT, CORNER_RADIUS, "rgba(255,255,255,0.03)", False)
@@ -279,7 +329,19 @@ def start_new_game(event):
     state.reset()
     update_stats()
 
+def on_hint_click(event):
+    global active_hint
+    console.log("Buscando dica...")
+    active_hint = state.get_hint()
+    if active_hint:
+        console.log(f"Dica encontrada: {active_hint['type']}")
+        global_timer['hint'] = 180 # 3 seconds
+    else:
+        console.log("Nenhum movimento óbvio encontrado. Tente comprar uma carta!")
+
 document.getElementById("new-game-btn").onclick = create_proxy(start_new_game)
+document.getElementById("hint-btn").onclick = create_proxy(on_hint_click)
+# Dica: Botão de desfazer pode ser implementado salvando cópias do estado, mas vamos focar na dica primeiro.
 
 # Kickoff
 asyncio.ensure_future(game_loop())

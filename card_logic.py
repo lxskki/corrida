@@ -86,3 +86,43 @@ class GameState:
                 self.moves += 1
                 return True
         return False
+
+    def get_hint(self):
+        # 1. Foundation moves (Waste)
+        if self.waste:
+            card = self.waste[-1]
+            for i in range(4):
+                if self.can_move_to_foundation(card, i):
+                    return {'type': 'waste_to_foundations', 'target_idx': i}
+        
+        # 2. Foundation moves (Tableau)
+        for i in range(7):
+            if self.tableau[i]:
+                card = self.tableau[i][-1]
+                if card.face_up:
+                    for j in range(4):
+                        if self.can_move_to_foundation(card, j):
+                            return {'type': 'tableau_to_foundations', 'source_idx': i, 'target_idx': j}
+
+        # 3. Tableau moves (Waste)
+        if self.waste:
+            card = self.waste[-1]
+            for i in range(7):
+                if self.can_move_to_tableau(card, self.tableau[i]):
+                    return {'type': 'waste_to_tableau', 'target_idx': i}
+
+        # 4. Tableau to Tableau moves
+        for i in range(7):
+            if self.tableau[i]:
+                # Find the first face-up card in the pile
+                for k in range(len(self.tableau[i])):
+                    if self.tableau[i][k].face_up:
+                        card = self.tableau[i][k]
+                        for j in range(7):
+                            if i == j: continue
+                            if self.can_move_to_tableau(card, self.tableau[j]):
+                                # Avoid moving King to empty column if it's already the bottom of its column
+                                if not self.tableau[j] and k == 0: continue 
+                                return {'type': 'tableau_to_tableau', 'source_idx': i, 'card_idx': k, 'target_idx': j}
+                        break
+        return None
