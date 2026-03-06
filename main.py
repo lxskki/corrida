@@ -8,13 +8,13 @@ canvas = document.getElementById("game-canvas")
 ctx = canvas.getContext("2d")
 
 # Game dimensions & constants
-DPR = window.devicePixelRatio or 1
+DPR = float(window.devicePixelRatio or 1.0)
 CARD_WIDTH = 90 * DPR
 CARD_HEIGHT = 130 * DPR
-CARD_GAP = 30 * DPR
-TABLEAU_OFFSET_Y = 180 * DPR
+CARD_GAP = 20 * DPR
+TABLEAU_OFFSET_Y = 220 * DPR
 TABLEAU_CARD_SPACING = 30 * DPR
-CORNER_RADIUS = 8 * DPR
+CORNER_RADIUS = 10 * DPR
 
 # Colors (matching style.css)
 COLOR_WHITE = "#ffffff"
@@ -22,9 +22,15 @@ COLOR_RED = "#e11d48"
 COLOR_BLACK = "#0f172a"
 COLOR_GOLD = "#fbbf24"
 COLOR_GLASS = "rgba(255, 255, 255, 0.1)"
+COLOR_PLACEHOLDER = "rgba(255, 255, 255, 0.25)"
 
 # Game State
 state = GameState()
+try:
+    state.reset()
+except Exception as e:
+    console.log(f"Erro no reset inicial: {e}")
+    
 state_history = [] 
 
 active_hint = None
@@ -146,17 +152,49 @@ def draw_hint_highlight(hint):
         ctx.strokeStyle = "rgba(251, 191, 36, 0.5)"
         ctx.strokeRect(target_x - 4*DPR, target_y - 4*DPR, CARD_WIDTH + 8*DPR, CARD_HEIGHT + 8*DPR)
     
+    if target_x > 0:
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.6)"
+        ctx.strokeRect(target_x - 4*DPR, target_y - 4*DPR, CARD_WIDTH + 8*DPR, CARD_HEIGHT + 8*DPR)
+    
     ctx.setLineDash([])
 
+    # Draw Dragged Cards last to keep them on top
+    if selected_cards:
+        for i, card in enumerate(selected_cards):
+            drag_x = current_mouse_x - (mouse_start_x - drag_start_x)
+            drag_y = current_mouse_y - (mouse_start_y - drag_start_y) + (i * TABLEAU_CARD_SPACING)
+            draw_card(ctx, card, drag_x, drag_y, True)
+
 def render(elapsed_time):
+    try:
+        render_internal()
+    except Exception as e:
+        if not hasattr(render, "_err_logged"):
+            console.log(f"Erro render: {e}")
+            render._err_logged = True
+
+def render_internal():
     # Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     
-    # Draw Hint Highlight
-    if active_hint and global_timer['hint'] > 0:
-        draw_hint_highlight(active_hint)
-        global_timer['hint'] -= 1
+    # Check if state is initialized
+    if not hasattr(state, 'tableau') or not state.tableau:
+        # Try a force reset if empty
+        try:
+            state.reset()
+            console.log("Mesa reiniciada via Render (estava vazia)")
+        except:
+            return
+        
+    if not state.tableau: return
     
+    # Debug: Log once if tableau exists
+    if not hasattr(render, "_init_log"):
+        console.log(f"Renderizando Mesa: {len(state.tableau)} colunas")
+        for i, col in enumerate(state.tableau):
+            console.log(f"Coluna {i}: {len(col)} cartas")
+        render._init_log = True
+        
     # Draw Stock Pile Area
     draw_rounded_rect(ctx, 40*DPR, 30*DPR, CARD_WIDTH, CARD_HEIGHT, CORNER_RADIUS, "rgba(255,255,255,0.03)", False)
     if state.stock:
@@ -171,8 +209,8 @@ def render(elapsed_time):
         
     # Draw foundations
     for i in range(4):
-        x = canvas.width - (4-i)*(CARD_WIDTH + CARD_GAP)
-        draw_rounded_rect(ctx, x, 30*DPR, CARD_WIDTH, CARD_HEIGHT, CORNER_RADIUS, "rgba(255,255,255,0.03)", False)
+        x = canvas.width - (4-i)*(CARD_WIDTH + CARD_GAP) - 20*DPR
+        draw_rounded_rect(ctx, x, 30*DPR, CARD_WIDTH, CARD_HEIGHT, CORNER_RADIUS, COLOR_PLACEHOLDER, False)
         if state.foundations[i]:
             draw_card(ctx, state.foundations[i][-1], x, 30*DPR)
             
@@ -181,23 +219,29 @@ def render(elapsed_time):
         x = 40*DPR + i*(CARD_WIDTH + CARD_GAP)
         y_base = TABLEAU_OFFSET_Y
         
-        # Empty placeholder
-        draw_rounded_rect(ctx, x, y_base, CARD_WIDTH, CARD_HEIGHT, CORNER_RADIUS, "rgba(255,255,255,0.02)", False)
+        # Draw placeholder
+        draw_rounded_rect(ctx, x, y_base, CARD_WIDTH, CARD_HEIGHT, CORNER_RADIUS, COLOR_PLACEHOLDER, False)
         
-        for j, card in enumerate(state.tableau[i]):
-            # Skip drawing if card is being dragged
-            is_dragging = (drag_source is state.tableau[i] and card in selected_cards)
-            if is_dragging:
-                continue
-                
-            card_y = y_base + (j * TABLEAU_CARD_SPACING)
-            draw_card(ctx, card, x, card_y)
+        if i < len(state.tableau):
+            for j, card in enumerate(state.tableau[i]):
+                # Skip drawing if card is being dragged
+                is_dragging = (drag_source is state.tableau[i] and card in selected_cards)
+                if is_dragging:
+                    continue
+                    
+                card_y = y_base + (j * TABLEAU_CARD_SPACING)
+                draw_card(ctx, card, x, card_y)
+
+    # Draw Hint Highlight
+    if active_hint and global_timer['hint'] > 0:
+        draw_hint_highlight(active_hint)
+        global_timer['hint'] -= 1
             
     # Draw Dragged Cards last to keep them on top
     if selected_cards:
         for i, card in enumerate(selected_cards):
             drag_x = current_mouse_x - (mouse_start_x - drag_start_x)
-            drag_y = current_mouse_y - (mouse_start_y - drag_start_y) + i * TABLEAU_CARD_SPACING
+            drag_y = current_mouse_y - (mouse_start_y - drag_start_y) + (i * TABLEAU_CARD_SPACING)
             draw_card(ctx, card, drag_x, drag_y, True)
 
 def on_mousedown(event):
@@ -284,12 +328,16 @@ def on_mouseup(event):
     # Try move to Foundation (only single card)
     if not moved and len(selected_cards) == 1:
         for i in range(4):
-            x_f = canvas.width - (4-i)*(CARD_WIDTH + CARD_GAP)
+            x_f = canvas.width - (4-i)*(CARD_WIDTH + CARD_GAP) - 20*DPR
             if x_f <= mouse_x <= x_f + CARD_WIDTH and 30*DPR <= mouse_y <= 30*DPR + CARD_HEIGHT:
                 if state.can_move_to_foundation(selected_cards[0], i):
                     target_card = selected_cards[0]
-                    if drag_source is not None and target_card in drag_source:
-                        drag_source.remove(target_card)
+                    if drag_source is not None:
+                        try:
+                            drag_source.remove(target_card)
+                        except:
+                            pass
+                                
                     state.foundations[i].append(target_card)
                     moved = True
                     state.score += 10
