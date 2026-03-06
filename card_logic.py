@@ -1,5 +1,13 @@
 import random
 
+# Tentar importar console do JS para depuração no navegador
+try:
+    from js import console
+except ImportError:
+    class ConsoleFallback:
+        def log(self, *ms): print(*ms)
+    console = ConsoleFallback()
+
 class Card:
     SUITS = ['copas', 'espadas', 'ouros', 'paus']
     VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
@@ -17,58 +25,52 @@ class Card:
 class GameState:
     def __init__(self):
         self.deck = []
-        self.tableau = []
+        self.tableau = [[] for _ in range(7)]
         self.stock = []
         self.waste = []
-        self.foundations = []
+        self.foundations = [[] for _ in range(4)]
         self.score = 0
         self.moves = 0
         self.start_time = 0.0
         self.reset()
         
     def reset(self):
-        self.deck = [Card(v, s) for s in Card.SUITS for v in Card.VALUES]
-        random.shuffle(self.deck)
+        console.log("Reiniciando lógica do jogo...")
+        # Criar baralho completo
+        full_deck = []
+        for s in self.SUITS:
+            for v in self.VALUES:
+                full_deck.append(Card(v, s))
         
+        random.shuffle(full_deck)
+        
+        # Limpar pilhas
         self.tableau = [[] for _ in range(7)]
-        for i in range(7):
-            for j in range(i + 1):
-                card = self.deck.pop()
-                if j == i:
-                    card.face_up = True
-                self.tableau[i].append(card)
-                
-        self.stock = self.deck
+        self.stock = []
         self.waste = []
         self.foundations = [[] for _ in range(4)]
         self.score = 0
         self.moves = 0
         self.start_time = 0.0
         
-    def can_move_to_tableau(self, card, target_pile):
-        if not target_pile:
-            return card.value == 'K'
+        # Distribuir para o tabuleiro (Tableau)
+        for i in range(7):
+            for j in range(i + 1):
+                if full_deck:
+                    card = full_deck.pop()
+                    if j == i:
+                        card.face_up = True
+                    self.tableau[i].append(card)
         
-        bottom_card = target_pile[-1]
-        if not bottom_card.face_up:
-            return False
-            
-        return card.is_red != bottom_card.is_red and card.rank == bottom_card.rank - 1
-        
-    def can_move_to_foundation(self, card, foundation_index):
-        target_f = self.foundations[foundation_index]
-        if not target_f:
-            return card.value == 'A'
-        
-        top_card = target_f[-1]
-        return card.suit == top_card.suit and card.rank == top_card.rank + 1
+        # Restante vai para o estoque (Stock)
+        self.stock = full_deck
+        console.log("Estado do jogo reiniciado com sucesso.")
 
     def draw_from_stock(self):
-        if not self.start_time:
-            from time import time
-            self.start_time = time()
         if not self.stock:
-            # Recycle waste
+            if not self.waste:
+                return
+            # Reciclar lixo para o estoque
             self.stock = list(reversed(self.waste))
             self.waste = []
             for c in self.stock:
@@ -79,57 +81,63 @@ class GameState:
             self.waste.append(card)
         self.moves += 1
 
-    def try_auto_move(self, card_ref, source_pile):
-        if not self.start_time:
-            from time import time
-            self.start_time = time()
-        # Logic to move card to foundation automatically
+    def can_move_to_tableau(self, card, target_pile):
+        if not target_pile:
+            return card.value == 'K'
+        
+        top = target_pile[-1]
+        if not top.face_up: return False
+        
+        # Cores alternadas e ordem decrescente
+        return card.is_red != top.is_red and card.rank == top.rank - 1
+        
+    def can_move_to_foundation(self, card, f_idx):
+        if f_idx < 0 or f_idx >= 4: return False
+        target = self.foundations[f_idx]
+        if not target:
+            return card.value == 'A'
+        
+        top = target[-1]
+        return card.suit == top.suit and card.rank == top.rank + 1
+
+    def try_auto_move(self, card, source_pile):
         for i in range(4):
-            if self.can_move_to_foundation(card_ref, i):
-                if source_pile:
-                    source_pile.remove(card_ref)
-                self.foundations[i].append(card_ref)
-                self.score += 10
-                self.moves += 1
-                return True
+            if self.can_move_to_foundation(card, i):
+                if card in source_pile:
+                    source_pile.remove(card)
+                    self.foundations[i].append(card)
+                    self.score += 10
+                    self.moves += 1
+                    return True
         return False
 
     def get_hint(self):
-        # 1. Foundation moves (Waste)
+        # Hint logic: simple scan
+        # 1. Waste to Foundations
         if self.waste:
-            card = self.waste[-1]
+            c = self.waste[-1]
             for i in range(4):
-                if self.can_move_to_foundation(card, i):
-                    return {'type': 'waste_to_foundations', 'target_idx': i}
+                if self.can_move_to_foundation(c, i):
+                    return {'type': 'waste_to_f', 'f_idx': i}
         
-        # 2. Foundation moves (Tableau)
+        # 2. Tableau to Foundations
         for i in range(7):
             if self.tableau[i]:
-                card = self.tableau[i][-1]
-                if card.face_up:
+                c = self.tableau[i][-1]
+                if c.face_up:
                     for j in range(4):
-                        if self.can_move_to_foundation(card, j):
-                            return {'type': 'tableau_to_foundations', 'source_idx': i, 'target_idx': j}
-
-        # 3. Tableau moves (Waste)
-        if self.waste:
-            card = self.waste[-1]
-            for i in range(7):
-                if self.can_move_to_tableau(card, self.tableau[i]):
-                    return {'type': 'waste_to_tableau', 'target_idx': i}
-
-        # 4. Tableau to Tableau moves
+                        if self.can_move_to_foundation(c, j):
+                            return {'type': 'tab_to_f', 'src': i, 'f_idx': j}
+                            
+        # 3. Tableau to Tableau
         for i in range(7):
-            if self.tableau[i]:
-                # Find the first face-up card in the pile
-                for k in range(len(self.tableau[i])):
-                    if self.tableau[i][k].face_up:
-                        card = self.tableau[i][k]
-                        for j in range(7):
-                            if i == j: continue
-                            if self.can_move_to_tableau(card, self.tableau[j]):
-                                # Avoid moving King to empty column if it's already the bottom of its column
-                                if not self.tableau[j] and k == 0: continue 
-                                return {'type': 'tableau_to_tableau', 'source_idx': i, 'card_idx': k, 'target_idx': j}
-                        break
+            if not self.tableau[i]: continue
+            for k, c in enumerate(self.tableau[i]):
+                if c.face_up:
+                    for j in range(7):
+                        if i == j: continue
+                        if self.can_move_to_tableau(c, self.tableau[j]):
+                            if k == 0 and not self.tableau[j]: continue
+                            return {'type': 'tab_to_tab', 'src': i, 'target': j, 'card_idx': k}
+                    break
         return None
