@@ -161,11 +161,11 @@ def render(elapsed_time):
     draw_rounded_rect(ctx, 40*DPR, 30*DPR, CARD_WIDTH, CARD_HEIGHT, CORNER_RADIUS, "rgba(255,255,255,0.03)", False)
     if state.stock:
         draw_card(ctx, state.stock[-1], 40*DPR, 30*DPR)
-        
+    
     # Draw Waste Pile
     if state.waste:
         # Avoid drawing waste card if it's currently being dragged
-        is_dragging_waste = (drag_source == state.waste and state.waste[-1] in selected_cards)
+        is_dragging_waste = (drag_source is state.waste and state.waste[-1] in selected_cards)
         if not is_dragging_waste:
             draw_card(ctx, state.waste[-1], 40*DPR + CARD_WIDTH + CARD_GAP, 30*DPR)
         
@@ -186,9 +186,11 @@ def render(elapsed_time):
         
         for j, card in enumerate(state.tableau[i]):
             # Skip drawing if card is being dragged
-            if drag_source == state.tableau[i] and card in selected_cards:
+            is_dragging = (drag_source is state.tableau[i] and card in selected_cards)
+            if is_dragging:
                 continue
-            card_y = y_base + j * TABLEAU_CARD_SPACING
+                
+            card_y = y_base + (j * TABLEAU_CARD_SPACING)
             draw_card(ctx, card, x, card_y)
             
     # Draw Dragged Cards last to keep them on top
@@ -205,9 +207,10 @@ def on_mousedown(event):
     mouse_y = (event.clientY - rect.top) * DPR
     
     # Initialize global start time on first interaction
-    if not state.start_time:
+    if not state.start_time or state.start_time == 0.0:
         import time
         state.start_time = time.time()
+        console.log("Timer iniciado!")
     
     mouse_start_x = mouse_x
     mouse_start_y = mouse_y
@@ -270,7 +273,7 @@ def on_mouseup(event):
             if state.can_move_to_tableau(selected_cards[0], state.tableau[i]):
                 # Execute move
                 for card in selected_cards:
-                    if drag_source:
+                    if drag_source is not None:
                         drag_source.remove(card)
                     state.tableau[i].append(card)
                 moved = True
@@ -284,9 +287,10 @@ def on_mouseup(event):
             x_f = canvas.width - (4-i)*(CARD_WIDTH + CARD_GAP)
             if x_f <= mouse_x <= x_f + CARD_WIDTH and 30*DPR <= mouse_y <= 30*DPR + CARD_HEIGHT:
                 if state.can_move_to_foundation(selected_cards[0], i):
-                    if drag_source:
-                        drag_source.remove(selected_cards[0])
-                    state.foundations[i].append(selected_cards[0])
+                    target_card = selected_cards[0]
+                    if drag_source is not None and target_card in drag_source:
+                        drag_source.remove(target_card)
+                    state.foundations[i].append(target_card)
                     moved = True
                     state.score += 10
                     state.moves += 1
