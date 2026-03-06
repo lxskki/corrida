@@ -38,8 +38,8 @@ class GameState:
         console.log("Reiniciando lógica do jogo...")
         # Criar baralho completo
         full_deck = []
-        for s in self.SUITS:
-            for v in self.VALUES:
+        for s in Card.SUITS:
+            for v in Card.VALUES:
                 full_deck.append(Card(v, s))
         
         random.shuffle(full_deck)
