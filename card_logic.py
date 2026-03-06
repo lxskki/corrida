@@ -23,7 +23,7 @@ class GameState:
         self.foundations = []
         self.score = 0
         self.moves = 0
-        self.start_time = None
+        self.start_time = 0.0
         self.reset()
         
     def reset(self):
@@ -43,7 +43,7 @@ class GameState:
         self.foundations = [[] for _ in range(4)]
         self.score = 0
         self.moves = 0
-        self.start_time = None
+        self.start_time = 0.0
         
     def can_move_to_tableau(self, card, target_pile):
         if not target_pile:
@@ -64,6 +64,9 @@ class GameState:
         return card.suit == top_card.suit and card.rank == top_card.rank + 1
 
     def draw_from_stock(self):
+        if not self.start_time:
+            from time import time
+            self.start_time = time()
         if not self.stock:
             # Recycle waste
             self.stock = list(reversed(self.waste))
@@ -77,10 +80,14 @@ class GameState:
         self.moves += 1
 
     def try_auto_move(self, card_ref, source_pile):
+        if not self.start_time:
+            from time import time
+            self.start_time = time()
         # Logic to move card to foundation automatically
         for i in range(4):
             if self.can_move_to_foundation(card_ref, i):
-                source_pile.remove(card_ref)
+                if source_pile:
+                    source_pile.remove(card_ref)
                 self.foundations[i].append(card_ref)
                 self.score += 10
                 self.moves += 1

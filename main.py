@@ -28,7 +28,11 @@ state = GameState()
 state_history = [] 
 
 active_hint = None
-global_timer = { 'hint': 0 } # Using dict to ensure mutability in closures/loops
+global_timer = { 
+    'hint': 0,
+    'start_time': 0, # Game logic starts on first move
+    'last_tick': 0
+}
 
 selected_cards = []  # Cards currently being dragged
 drag_source = None
@@ -160,7 +164,10 @@ def render(elapsed_time):
         
     # Draw Waste Pile
     if state.waste:
-        draw_card(ctx, state.waste[-1], 40*DPR + CARD_WIDTH + CARD_GAP, 30*DPR)
+        # Avoid drawing waste card if it's currently being dragged
+        is_dragging_waste = (drag_source == state.waste and state.waste[-1] in selected_cards)
+        if not is_dragging_waste:
+            draw_card(ctx, state.waste[-1], 40*DPR + CARD_WIDTH + CARD_GAP, 30*DPR)
         
     # Draw foundations
     for i in range(4):
@@ -196,6 +203,11 @@ def on_mousedown(event):
     rect = canvas.getBoundingClientRect()
     mouse_x = (event.clientX - rect.left) * DPR
     mouse_y = (event.clientY - rect.top) * DPR
+    
+    # Initialize global start time on first interaction
+    if not state.start_time:
+        import time
+        state.start_time = time.time()
     
     mouse_start_x = mouse_x
     mouse_start_y = mouse_y
@@ -313,20 +325,30 @@ def on_dblclick(event):
 def update_stats():
     document.getElementById("score").innerHTML = str(state.score)
     document.getElementById("moves").innerHTML = str(state.moves)
+    
+    # Timer logic
+    if state.start_time:
+        import time
+        elapsed = int(time.time() - state.start_time)
+        mins = elapsed // 60
+        secs = elapsed % 60
+        document.getElementById("timer").innerHTML = f"{mins:02d}:{secs:02d}"
 
 async def game_loop():
     while True:
         render(0)
+        update_stats()
         await asyncio.sleep(0.016) # ~60 FPS
 
 # Event bindings
 canvas.addEventListener("mousedown", create_proxy(on_mousedown))
-canvas.addEventListener("mousemove", create_proxy(on_mousemove))
+window.addEventListener("mousemove", create_proxy(on_mousemove))
 canvas.addEventListener("dblclick", create_proxy(on_dblclick))
 window.addEventListener("mouseup", create_proxy(on_mouseup))
 
 def start_new_game(event):
     state.reset()
+    document.getElementById("timer").innerHTML = "00:00"
     update_stats()
 
 def on_hint_click(event):
