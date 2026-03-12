@@ -7,8 +7,6 @@
 
   <!-- Estilos -->
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Dica: você pode personalizar o favicon adicionando /favicon.ico -->
 </head>
 <body>
   <header>
@@ -25,7 +23,6 @@
   </header>
 
   <main class="game-container">
-    <!-- O canvas é onde todo o jogo é desenhado -->
     <canvas id="game-canvas"></canvas>
   </main>
 
@@ -33,20 +30,19 @@
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   <script>
     (async () => {
-      // Carrega o runtime do Pyodide
+      // 1) Carrega o runtime do Pyodide
       const pyodide = await loadPyodide({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
       });
 
-      // Escreve os arquivos Python no FS virtual do Pyodide
-      const files = ["card_logic.py", "main.py"];
-      for (const path of files) {
+      // 2) Escreve os arquivos Python no FS virtual do Pyodide
+      for (const path of ["card_logic.py", "main.py"]) {
         const resp = await fetch(path);
         const code = await resp.text();
         pyodide.FS.writeFile(path, code);
       }
 
-      // Importa e inicia o jogo (main.py)
+      // 3) Importa e inicia o jogo (main.py)
       await pyodide.runPythonAsync("import main");
     })();
   </script>
