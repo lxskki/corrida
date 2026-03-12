@@ -1,225 +1,205 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap');
 
 :root {
-    /* Green Felt Color Palette */
-    --color-table-bg: hsl(145, 45%, 15%);
-    --color-table-accent: hsl(145, 45%, 10%);
-    --color-table-glow: hsla(145, 50%, 40%, 0.15);
+  /* Green Felt Color Palette */
+  --color-table-bg: hsl(145, 45%, 15%);
+  --color-table-accent: hsl(145, 45%, 10%);
+  --color-table-glow: hsla(145, 50%, 40%, 0.15);
 
-    /* Card Aesthetics */
-    --card-width: 100px;
-    --card-height: 145px;
-    --card-radius: 8px;
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-    --card-white: #ffffff;
-    --card-red: #e11d48;
-    --card-black: #0f172a;
+  /* Card Aesthetics */
+  --card-width: 100px;
+  --card-height: 145px;
+  --card-radius: 8px;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  --card-white: #ffffff;
+  --card-red: #e11d48;
+  --card-black: #0f172a;
 
-    /* UI Colors */
-    --bg-glass: rgba(15, 23, 42, 0.6);
-    --border-glass: rgba(255, 255, 255, 0.08);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --accent-gold: #fbbf24;
+  /* UI Colors */
+  --bg-glass: rgba(15, 23, 42, 0.6);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-gold: #fbbf24;
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--color-table-bg);
-    background-image:
-        radial-gradient(circle at 50% 50%, var(--color-table-glow), transparent 70%),
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
-    color: var(--text-primary);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-table-bg);
+  background-image:
+    radial-gradient(circle at 50% 50%, var(--color-table-glow), transparent 70%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 header {
-    height: 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 2rem;
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-glass);
-    z-index: 100;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-glass);
+  z-index: 100;
 }
 
 h1 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .game-container {
-    flex: 1;
-    position: relative;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
+  flex: 1;
+  position: relative;
+  padding: 1rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-/* Solitaire Layout */
+/* Canvas ocupa a maior parte da área visível */
+#game-canvas {
+  width: 100%;
+  height: calc(100vh - 60px - 2rem); /* viewport - header - padding */
+  display: block;
+  border-radius: 12px;
+  outline: 1px solid rgba(255,255,255,0.08);
+  background: transparent; /* A mesa é desenhada no canvas */
+}
+
 .top-row {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .stock-waste,
 .foundations {
-    display: flex;
-    gap: 1.5rem;
+  display: flex;
+  gap: 1.5rem;
 }
 
 .tableau {
-    display: flex;
-    gap: 1.5rem;
-    justify-content: space-between;
-    flex-grow: 1;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  flex-grow: 1;
 }
 
 .pile {
-    width: var(--card-width);
-    height: var(--card-height);
-    border-radius: var(--card-radius);
-    border: 2px dashed rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
-    position: relative;
+  width: var(--card-width);
+  height: var(--card-height);
+  border-radius: var(--card-radius);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
 }
 
+/* Classes de carta são menos usadas porque o jogo usa canvas,
+   mas ficam aqui para eventual migração a DOM */
 .card {
-    width: var(--card-width);
-    height: var(--card-height);
-    border-radius: var(--card-radius);
-    background: var(--card-white);
-    box-shadow: var(--card-shadow);
-    cursor: grab;
-    position: absolute;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-    padding: 0.5rem;
-    color: var(--card-black);
+  width: var(--card-width);
+  height: var(--card-height);
+  border-radius: var(--card-radius);
+  background: var(--card-white);
+  box-shadow: var(--card-shadow);
+  cursor: grab;
+  position: absolute;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  color: var(--card-black);
 }
 
 .card.face-down {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    color: transparent;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: transparent;
 }
 
 .card.face-down::after {
-    content: '';
-    position: absolute;
-    inset: 0.5rem;
-    border-radius: 4px;
-    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17.17L3.17 10.34 1.76 11.76 10 20l8.24-8.24-1.41-1.42L10 17.17z' fill='%23334155' fill-opacity='0.1'/%3E%3C/svg%3E");
+  content: '';
+  position: absolute;
+  inset: 0.5rem;
+  border-radius: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17.17L3.17 10.34 1.76 11.76 10 20l8.24-8.24-1.41-1.42L10 17.17z' fill='%23334155' fill-opacity='0.1'/%3E%3C/svg%3E");
 }
 
 .card:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: var(--card-shadow-hover);
-    z-index: 50 !important;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--card-shadow-hover);
+  z-index: 50 !important;
 }
 
-.card.red {
-    color: var(--card-red);
-}
+.card.red { color: var(--card-red); }
+.card-value { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+.card-suit  { font-size: 1.5rem; }
 
-.card-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.card-suit {
-    font-size: 1.5rem;
-}
-
-.tableau-pile {
-    display: flex;
-    flex-direction: column;
-    gap: -110px;
-    /* Offset for stacked cards */
-}
-
-/* Animations */
+/* Animações (mantidas para possível uso futuro) */
 @keyframes deal {
-    from {
-        transform: translate(-500px, -500px) rotate(-45deg);
-        opacity: 0;
-    }
-
-    to {
-        transform: translate(0, 0) rotate(0deg);
-        opacity: 1;
-    }
+  from {
+    transform: translate(-500px, -500px) rotate(-45deg);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
 }
 
 .card-dealt {
-    animation: deal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: deal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Controls Overlay */
-.controls {
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    padding: 1rem 2rem;
-    border-radius: 9999px;
-    border: 1px solid var(--border-glass);
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-}
-
+/* Botões / Stats */
 .btn {
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
-    font-weight: 600;
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    transition: background 0.2s;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background 0.2s;
 }
-
-.btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
+.btn:hover { background: rgba(255, 255, 255, 0.1); }
 
 .stats {
-    display: flex;
-    gap: 1.5rem;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+.stat-value {
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
-.stat-value {
-    color: var(--text-primary);
-    font-weight: 700;
-}
+/* (Removido) .tableau-pile com gap negativo — o jogo usa canvas */
